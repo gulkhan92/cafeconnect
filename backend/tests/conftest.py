@@ -1,4 +1,5 @@
 import asyncio
+import datetime
 import os
 import sys
 from pathlib import Path
@@ -26,6 +27,8 @@ from app.core.security import hash_password
 from app.database import AsyncSessionLocal, engine
 from app.main import app
 from app.models.enums import UserRole
+from app.models.menu import MenuCategory, MenuItem
+from app.models.table import Table, TableSlot
 from app.models.user import User
 
 BACKEND_DIR = Path(__file__).resolve().parent.parent
@@ -44,7 +47,13 @@ def apply_migrations():
 async def clean_state():
     yield
     async with engine.begin() as conn:
-        await conn.execute(text("TRUNCATE TABLE users CASCADE"))
+        await conn.execute(
+            text(
+                "TRUNCATE TABLE users, menu_categories, menu_items, tables, "
+                "table_slots, bookings, orders, order_items, chat_sessions, "
+                "chat_messages RESTART IDENTITY CASCADE"
+            )
+        )
     await redis_client.flushdb()
 
 
@@ -83,3 +92,77 @@ async def customer_user():
         session.add(user)
         await session.commit()
     return {"email": "customer@example.com", "password": password}
+
+
+async def get_access_token(client: AsyncClient, credentials: dict) -> str:
+    response = await client.post("/auth/login", json=credentials)
+    assert response.status_code == 200, response.text
+    return response.json()["access_token"]
+
+
+@pytest_asyncio.fixture
+async def sample_category():
+    async with AsyncSessionLocal() as session:
+        category = MenuCategory(name="Beverages", display_order=1)
+        session.add(category)
+        await session.commit()
+        await session.refresh(category)
+    return category
+
+
+@pytest_asyncio.fixture
+async def sample_table():
+    async with AsyncSessionLocal() as session:
+        table = Table(table_number="T1", capacity=4, location_tag="indoor")
+        session.add(table)
+        await session.commit()
+        await session.refresh(table)
+    return table
+
+
+@pytest_asyncio.fixture
+async def sample_slot(sample_table):
+    async with AsyncSessionLocal() as session:
+        slot = TableSlot(
+            table_id=sample_table.id,
+            date=datetime.date.today() + datetime.timedelta(days=1),
+            start_time=datetime.time(18, 0),
+            end_time=datetime.time(18, 30),
+            is_booked=False,
+        )
+        session.add(slot)
+        await session.commit()
+        await session.refresh(slot)
+    return slot
+
+
+@pytest_asyncio.fixture
+async def sample_menu_item(sample_category):
+    async with AsyncSessionLocal() as session:
+        item = MenuItem(
+            category_id=sample_category.id,
+            name="Cappuccino",
+            description="Espresso with steamed milk foam",
+            price=4.50,
+            is_available=True,
+        )
+        session.add(item)
+        await session.commit()
+        await session.refresh(item)
+    return item
+
+
+@pytest_asyncio.fixture
+async def unavailable_menu_item(sample_category):
+    async with AsyncSessionLocal() as session:
+        item = MenuItem(
+            category_id=sample_category.id,
+            name="Seasonal Pumpkin Spice Latte",
+            description="Currently out of season",
+            price=5.00,
+            is_available=False,
+        )
+        session.add(item)
+        await session.commit()
+        await session.refresh(item)
+    return item

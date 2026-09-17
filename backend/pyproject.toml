@@ -16,6 +16,7 @@ dependencies = [
     "bcrypt>=4.1",
     "redis>=5.0",
     "sentence-transformers>=3.0",
+    "numpy>=1.26",
     "pgvector>=0.3",
     "groq>=0.9",
     "google-genai>=0.1",

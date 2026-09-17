@@ -42,6 +42,22 @@ async def get_current_user(
     return user
 
 
+async def get_current_user_optional(
+    token: str | None = Depends(oauth2_scheme),
+    db: AsyncSession = Depends(get_db),
+) -> User | None:
+    if token is None:
+        return None
+
+    try:
+        payload = decode_token(token, expected_type="access")
+        user_id = uuid.UUID(payload["sub"])
+    except (TokenError, KeyError, ValueError):
+        return None
+
+    return await db.get(User, user_id)
+
+
 def require_role(*allowed_roles: UserRole):
     async def dependency(current_user: User = Depends(get_current_user)) -> User:
         if current_user.role not in allowed_roles:

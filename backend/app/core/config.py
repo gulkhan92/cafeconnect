@@ -14,6 +14,12 @@ class Settings(BaseSettings):
 
     groq_api_key: str = ""
     gemini_api_key: str = ""
+    groq_model: str = "openai/gpt-oss-20b"
+    gemini_model: str = "gemini-2.0-flash"
+    # Conservative defaults for each provider's free tier; tune to the actual
+    # published limits so we switch proactively rather than waiting for a 429.
+    groq_requests_per_minute: int = 25
+    gemini_requests_per_minute: int = 10
 
     frontend_origin: str = "http://localhost:5173"
 
