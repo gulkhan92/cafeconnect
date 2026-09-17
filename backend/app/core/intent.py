@@ -9,11 +9,29 @@ INTENT_LABELS = ["book_table", "check_availability", "menu_question", "order_ite
 SIMILARITY_THRESHOLD = 0.35
 
 _KEYWORD_RULES: list[tuple[re.Pattern, str]] = [
-    (re.compile(r"\bavailab(le|ility)\b|\bfree table\b|\bopen (slot|table)s?\b|\bany table\b", re.I), "check_availability"),
+    (
+        re.compile(r"\bavailab(le|ility)\b|\bfree table\b|\bopen (slot|table)s?\b|\bany table\b", re.I),
+        "check_availability",
+    ),
     (re.compile(r"\b(book|reserve|reservation)\b", re.I), "book_table"),
-    (re.compile(r"\bmenu\b|\bwhat.*(do you have|do you serve|options)\b|\bdo you (have|serve)\b|\bgluten.free\b|\bvegan\b|\bvegetarian\b", re.I), "menu_question"),
-    (re.compile(r"\border\b|\bcheckout\b|\bi.?d like to (get|buy|order)\b|\bcan i get\b", re.I), "order_item"),
-    (re.compile(r"^\s*(hi|hello|hey|thanks|thank you|bye|goodbye|good (morning|afternoon|evening))\b", re.I), "small_talk"),
+    (
+        re.compile(
+            r"\bmenu\b|\bwhat.*(do you have|do you serve|options)\b|\bdo you (have|serve)\b"
+            r"|\bgluten.free\b|\bvegan\b|\bvegetarian\b",
+            re.I,
+        ),
+        "menu_question",
+    ),
+    (
+        re.compile(r"\border\b|\bcheckout\b|\bi.?d like to (get|buy|order)\b|\bcan i get\b", re.I),
+        "order_item",
+    ),
+    (
+        re.compile(
+            r"^\s*(hi|hello|hey|thanks|thank you|bye|goodbye|good (morning|afternoon|evening))\b", re.I
+        ),
+        "small_talk",
+    ),
 ]
 
 # Fixed labeled examples for embedding-similarity fallback, per the plan's design:

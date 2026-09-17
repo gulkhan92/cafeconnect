@@ -1,5 +1,6 @@
 from app.core.llm.base import BookingExtraction, LLMProvider, ProviderError
 from app.core.llm.quota import is_quota_exceeded, record_call
+from app.core.logging_config import log_event
 
 
 class AllProvidersUnavailableError(Exception):
@@ -19,16 +20,23 @@ class LLMRouter:
 
         for provider, requests_per_minute in self._providers:
             if await is_quota_exceeded(provider.name, requests_per_minute):
+                log_event("llm_provider_skipped_quota", provider=provider.name, method=method_name)
                 continue
             try:
                 await record_call(provider.name)
                 result = await getattr(provider, method_name)(*args)
+                log_event("llm_provider_served_request", provider=provider.name, method=method_name)
                 return result, provider.name
             except ProviderError as exc:
                 last_error = exc
+                log_event(
+                    "llm_provider_failed_over", provider=provider.name, method=method_name, error=str(exc)
+                )
                 continue
 
-        raise AllProvidersUnavailableError(str(last_error) if last_error else "no LLM providers available")
+        last_error_str = str(last_error) if last_error else None
+        log_event("llm_all_providers_unavailable", method=method_name, error=last_error_str)
+        raise AllProvidersUnavailableError(last_error_str or "no LLM providers available")
 
     async def extract_booking_fields(self, text: str, today: str) -> tuple[BookingExtraction, str]:
         return await self._run("extract_booking_fields", text, today)

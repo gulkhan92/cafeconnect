@@ -1,6 +1,6 @@
 import uuid
 
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends, HTTPException, Request, status
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -13,6 +13,7 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login", auto_error=False)
 
 
 async def get_current_user(
+    request: Request,
     token: str | None = Depends(oauth2_scheme),
     db: AsyncSession = Depends(get_db),
 ) -> User:
@@ -39,10 +40,12 @@ async def get_current_user(
     if user is None:
         raise credentials_error
 
+    request.state.user_id = str(user.id)
     return user
 
 
 async def get_current_user_optional(
+    request: Request,
     token: str | None = Depends(oauth2_scheme),
     db: AsyncSession = Depends(get_db),
 ) -> User | None:
@@ -55,7 +58,10 @@ async def get_current_user_optional(
     except (TokenError, KeyError, ValueError):
         return None
 
-    return await db.get(User, user_id)
+    user = await db.get(User, user_id)
+    if user is not None:
+        request.state.user_id = str(user.id)
+    return user
 
 
 def require_role(*allowed_roles: UserRole):

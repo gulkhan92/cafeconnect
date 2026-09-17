@@ -18,8 +18,10 @@ from app.services.orders import (
     BookingOwnershipError,
     MenuItemNotFoundError,
     MenuItemUnavailableError,
-    create_order as create_order_service,
     is_valid_status_transition,
+)
+from app.services.orders import (
+    create_order as create_order_service,
 )
 
 logger = logging.getLogger(__name__)
@@ -86,9 +88,8 @@ async def list_orders(
     if date_from is not None:
         query = query.where(Order.created_at >= datetime.datetime.combine(date_from, datetime.time.min))
     if date_to is not None:
-        query = query.where(
-            Order.created_at < datetime.datetime.combine(date_to + datetime.timedelta(days=1), datetime.time.min)
-        )
+        exclusive_end = datetime.datetime.combine(date_to + datetime.timedelta(days=1), datetime.time.min)
+        query = query.where(Order.created_at < exclusive_end)
 
     result = await db.execute(query)
     return list(result.scalars().unique().all())

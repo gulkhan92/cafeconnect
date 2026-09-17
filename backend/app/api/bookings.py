@@ -16,6 +16,8 @@ from app.services.bookings import (
     CapacityExceededError,
     SlotAlreadyBookedError,
     SlotNotFoundError,
+)
+from app.services.bookings import (
     create_booking as create_booking_service,
 )
 

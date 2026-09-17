@@ -2,8 +2,8 @@ from fastapi import APIRouter, Depends, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.deps import get_current_user_optional
-from app.core.llm.router import LLMRouter, get_llm_router
 from app.core.limiter import limiter
+from app.core.llm.router import LLMRouter, get_llm_router
 from app.database import get_db
 from app.models.user import User
 from app.schemas.chat import ChatMessageRequest, ChatMessageResponse

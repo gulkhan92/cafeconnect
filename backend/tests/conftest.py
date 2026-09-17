@@ -17,11 +17,11 @@ os.environ.setdefault("JWT_SECRET", "test-secret-do-not-use-in-production")
 
 import pytest
 import pytest_asyncio
-from alembic import command
 from alembic.config import Config
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy import text
 
+from alembic import command
 from app.core.redis import redis_client
 from app.core.security import hash_password
 from app.database import AsyncSessionLocal, engine

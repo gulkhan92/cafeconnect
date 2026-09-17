@@ -15,7 +15,9 @@ class FakeLLMRouter:
     to test LLM failover/extraction logic with mocked provider responses rather
     than live network calls."""
 
-    def __init__(self, extraction: BookingExtraction | Exception | None = None, classification: str | None = None):
+    def __init__(
+        self, extraction: BookingExtraction | Exception | None = None, classification: str | None = None
+    ):
         self._extraction = extraction
         self._classification = classification
         self.extract_calls = 0

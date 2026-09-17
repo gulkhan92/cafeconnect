@@ -4,8 +4,8 @@ import uuid
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.intent import classify_intent
-from app.core.llm.base import BookingExtraction
 from app.core.llm.router import AllProvidersUnavailableError, LLMRouter
+from app.core.logging_config import log_event
 from app.models.chat import ChatMessage, ChatSession
 from app.models.enums import BookingSource, ChatRole
 from app.models.table import Table, TableSlot
@@ -241,6 +241,15 @@ async def handle_chat_message(
     session.last_intent = intent
     await _append_message(db, session, ChatRole.assistant, reply)
     await db.commit()
+
+    log_event(
+        "chat_turn_completed",
+        session_id=str(session.id),
+        user_id=str(user.id) if user else None,
+        intent=intent,
+        classification_method=method,
+        provider_used=provider_used,
+    )
 
     return ChatMessageResponse(
         session_id=session.id, intent=intent, reply=reply, provider_used=provider_used, data=data

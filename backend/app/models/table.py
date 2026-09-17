@@ -1,5 +1,6 @@
 import uuid
-from datetime import date as date_, time as time_
+from datetime import date as date_
+from datetime import time as time_
 
 from sqlalchemy import Boolean, Date, ForeignKey, Integer, String, Time, UniqueConstraint
 from sqlalchemy.dialects.postgresql import UUID
